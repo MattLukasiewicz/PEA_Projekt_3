@@ -11,22 +11,6 @@
 
 using namespace std;
 
-// Słownik znanych optymów z TSPLIB
-int pobierz_optimum(const string& sciezka) {
-    if (sciezka.find("br17") != string::npos) return 39;
-    if (sciezka.find("ftv33") != string::npos) return 1286;
-    if (sciezka.find("ftv35") != string::npos) return 1473;
-    if (sciezka.find("ftv38") != string::npos) return 1530;
-    if (sciezka.find("ftv47") != string::npos) return 1776;
-    if (sciezka.find("p43") != string::npos) return 5620;
-    if (sciezka.find("ry48p") != string::npos) return 14422;
-    if (sciezka.find("brazil58") != string::npos) return 25395;
-    if (sciezka.find("gr48") != string::npos) return 5046;
-    if (sciezka.find("gr24") != string::npos) return 1272;
-    if (sciezka.find("gr21") != string::npos) return 2707;
-    return -1;
-}
-
 // Funkcja pomocnicza do liczenia kosztu
 int policz_koszt(const vector<int>& trasa, const vector<vector<int>>& graf) {
     int suma = 0;
@@ -42,10 +26,10 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
 
     vector<vector<int>> graf = macierz.dane;
     int N = graf.size();
-    int optimum = pobierz_optimum(sciezka);
-    
+    int optimum = (macierz.optymalnyKoszt > 0) ? macierz.optymalnyKoszt : -1;
+
     if (optimum == -1) {
-        cout << "Uwaga: Brak znanego optimum dla pliku " << sciezka << " w slowniku!" << endl;
+        cout << "Uwaga: Brak optimum w pliku (sum_min=...) dla: " << sciezka << endl;
     }
 
     // Przygotowanie pliku CSV
