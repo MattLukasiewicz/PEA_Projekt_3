@@ -19,6 +19,7 @@ public:
     bool ts_zmienna_kadencja;
     bool ts_uzyj_ub;
     bool ts_uzyj_lb;
+    string ts_ub_metoda;
 
     // Pojedyncza sciezka do macierzy!
     string sciezka_do_pliku;

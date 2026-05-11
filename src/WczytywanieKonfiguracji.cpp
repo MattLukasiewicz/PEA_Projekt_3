@@ -1,6 +1,7 @@
 #include "WczytywanieKonfiguracji.h"
 #include <fstream>
 #include <iostream>
+#include <cctype>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ WczytywanieKonfiguracji::WczytywanieKonfiguracji() {
     ts_zmienna_kadencja = false;
     ts_uzyj_ub = false;
     ts_uzyj_lb = false;
+    ts_ub_metoda = "NN";
     
     sciezka_do_pliku = "";
 }
@@ -58,6 +60,11 @@ bool WczytywanieKonfiguracji::wczytaj_z_pliku(const string& nazwa_pliku) {
             plik >> ts_uzyj_ub;
         } else if (klucz == "TS_UZYJ_LB") {
             plik >> ts_uzyj_lb;
+        } else if (klucz == "TS_UB_METODA") {
+            plik >> ts_ub_metoda;
+            for (char& c : ts_ub_metoda) {
+                c = static_cast<char>(toupper(static_cast<unsigned char>(c)));
+            }
         } else if (klucz == "SCIEZKA_DO_PLIKU") {
             plik >> sciezka_do_pliku;
         }

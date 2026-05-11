@@ -42,34 +42,3 @@ int oblicz_LB_MST(const vector<vector<int>>& graf) {
     return suma_mst;
 }
 
-// --- OBLICZANIE UPPER BOUND (Algorytm Najbliższego Sąsiada - NN) ---
-vector<int> oblicz_UB_NN(const vector<vector<int>>& graf) {
-    int n = graf.size();
-    vector<int> trasa;
-    if (n == 0) return trasa;
-
-    vector<bool> odwiedzone(n, false);
-    
-    int obecny = 0; // Zaczynamy z miasta 0
-    trasa.push_back(obecny);
-    odwiedzone[obecny] = true;
-
-    for (int i = 1; i < n; ++i) {
-        int nastepny = -1;
-        int min_dystans = numeric_limits<int>::max();
-
-        // Szukamy najbliższego nieodwiedzonego sąsiada
-        for (int j = 0; j < n; ++j) {
-            if (!odwiedzone[j] && graf[obecny][j] < min_dystans) {
-                min_dystans = graf[obecny][j];
-                nastepny = j;
-            }
-        }
-
-        obecny = nastepny;
-        trasa.push_back(obecny);
-        odwiedzone[obecny] = true;
-    }
-
-    return trasa;
-}

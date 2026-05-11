@@ -1,6 +1,7 @@
 #include "Testy_Tabu.h"
 #include "Wczytywanie_Macierzy.h"
 #include "Algorytm_MST.h"
+#include "Algorytm_NN_i_RNN.h"
 #include "Algorytm_TabuSearch.h"
 #include "Stoper.h"
 #include "Pasek_postepu.h"
@@ -60,8 +61,17 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
 
         vector<int> trasa_startowa;
         if (config.ts_uzyj_ub) {
-            trasa_startowa = oblicz_UB_NN(graf);
+            if (config.ts_ub_metoda == "RNN") {
+                trasa_startowa = oblicz_UB_RNN(graf);
+            } else {
+                trasa_startowa = oblicz_UB_NN(graf);
+            }
         } else {
+            trasa_startowa.resize(N);
+            iota(trasa_startowa.begin(), trasa_startowa.end(), 0);
+        }
+
+        if (static_cast<int>(trasa_startowa.size()) != N) {
             trasa_startowa.resize(N);
             iota(trasa_startowa.begin(), trasa_startowa.end(), 0);
         }
