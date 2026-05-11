@@ -1,15 +1,17 @@
 // Plik konfiguracyjny - ustawienia aplikacji PEA 3
 // 1 - tak, 0 - nie
 
-WYSWIETLAJ_PASEK_POSTEPU = 1
+WYSWIETLAJ_PASEK_POSTEPU = 0
 PLIK_WYNIKOWY = wyniki/raport_tabu.csv
-ILOSC_BADANYCH_INSTANCJI = 5
+POWTORZENIA = 10
 
 // Parametry Algorytmu Tabu Search
 TS_MAX_ITERACJI = 1000
 TS_KADENCJA = 10
 TS_ASPIRACJA_PLUS = 1
 TS_ZMIENNA_KADENCJA = 1
+TS_UZYJ_UB = 1
+TS_UZYJ_LB = 1
 
 // Sciezka do badanej macierzy (pojedynczy plik)
 SCIEZKA_DO_PLIKU = dane/tsp_proste/asym/br17_prosty.txt

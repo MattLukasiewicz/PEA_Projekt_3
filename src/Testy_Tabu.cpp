@@ -3,10 +3,11 @@
 #include "Algorytm_MST.h"
 #include "Algorytm_TabuSearch.h"
 #include "Stoper.h"
-#include "Pasek_postepu.h" // <--- DODANY PASEK
+#include "Pasek_postepu.h"
 #include <iostream>
 #include <fstream>
 #include <numeric>
+#include <limits>
 
 using namespace std;
 
@@ -21,6 +22,8 @@ int pobierz_optimum(const string& sciezka) {
     if (sciezka.find("ry48p") != string::npos) return 14422;
     if (sciezka.find("brazil58") != string::npos) return 25395;
     if (sciezka.find("gr48") != string::npos) return 5046;
+    if (sciezka.find("gr24") != string::npos) return 1272;
+    if (sciezka.find("gr21") != string::npos) return 2707;
     return -1;
 }
 
@@ -41,80 +44,78 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
     int N = graf.size();
     int optimum = pobierz_optimum(sciezka);
     
+    if (optimum == -1) {
+        cout << "Uwaga: Brak znanego optimum dla pliku " << sciezka << " w slowniku!" << endl;
+    }
+
+    // Przygotowanie pliku CSV
     ofstream plik_csv(config.plik_wynikowy, ios::app); 
     plik_csv.seekp(0, ios::end);
     if (plik_csv.tellp() == 0) {
-        plik_csv << "Plik;N;Optimum;Koszt_TS;Blad_Proc;Czas_ms;Iteracje;Kadencja;UB_On;LB_On;AspiracjaPlus_On;ZmKadencja_On\n";
+        plik_csv << "Plik;N;Optimum;Powtorzenia;Sredni_Koszt;Sredni_Blad_Proc;Sredni_Czas_ms;Iteracje;Kadencja;UB_On;LB_On;AspPlus_On;ZmKadencja_On\n";
     }
 
     Stoper stoper;
-    cout << "Rozpoczynam badanie instancji: " << sciezka << " (N=" << N << ")" << endl;
+    cout << "Rozpoczynam badanie: " << sciezka << " (N=" << N << "), Powtorzenia: " << config.powtorzenia << endl;
 
-    // Obliczenia do paska postępu
-    int calkowita_liczba_testow = 6; // 5 prób kadencji + 1 próba bez UB/LB
-    int wykonane_testy = 0;
+    double suma_czasow_ms = 0.0;
+    long long suma_kosztow = 0;
+    int najlepszy_znaleziony_koszt = numeric_limits<int>::max();
 
-    // Rysowanie pustego paska na start (0%)
-    pokazPostep(config.wyswietlaj_pasek, wykonane_testy, calkowita_liczba_testow, "Testy");
+    pokazPostep(config.wyswietlaj_pasek, 0, config.powtorzenia, "Badanie");
 
-    // =========================================================================
-    // SCENARIUSZ 1: Wpływ długości kadencji (5 prób)
-    // =========================================================================
-    for (int test_kadencji = 5; test_kadencji <= 25; test_kadencji += 5) {
+    for (int i = 0; i < config.powtorzenia; i++) {
         
         stoper.start(); 
-        int LB_prawdziwe = oblicz_LB_MST(graf);
-        vector<int> UB_trasa_NN = oblicz_UB_NN(graf);
         
-        // Zwróć uwagę: nie przekazujemy już flagi paska do Tabu!
+        // Dynamiczne wyliczanie wewnątrz stopera dla rzetelności
+        int dolne_ograniczenie = -1;
+        if (config.ts_uzyj_lb) {
+            dolne_ograniczenie = oblicz_LB_MST(graf);
+        }
+
+        vector<int> trasa_startowa;
+        if (config.ts_uzyj_ub) {
+            trasa_startowa = oblicz_UB_NN(graf);
+        } else {
+            trasa_startowa.resize(N);
+            iota(trasa_startowa.begin(), trasa_startowa.end(), 0);
+        }
+
         vector<int> wynik_trasa = szukaj_tabu(
-            graf, config.ts_max_iteracji, test_kadencji, 
-            UB_trasa_NN, LB_prawdziwe, 
+            graf, config.ts_max_iteracji, config.ts_kadencja, 
+            trasa_startowa, dolne_ograniczenie, 
             config.ts_aspiracja_plus, config.ts_zmienna_kadencja
         );
+        
         stoper.stop();
         
         double czas_ms = stoper.pobierzCzasMs();
         int koszt = policz_koszt(wynik_trasa, graf);
-        double blad = (optimum > 0) ? ((double)(koszt - optimum) / optimum) * 100.0 : 0.0;
+        
+        suma_czasow_ms += czas_ms;
+        suma_kosztow += koszt;
+        if (koszt < najlepszy_znaleziony_koszt) najlepszy_znaleziony_koszt = koszt;
 
-        plik_csv << sciezka << ";" << N << ";" << optimum << ";" << koszt << ";" 
-                 << blad << ";" << czas_ms << ";" << config.ts_max_iteracji << ";" 
-                 << test_kadencji << ";1;1;" << config.ts_aspiracja_plus << ";" << config.ts_zmienna_kadencja << "\n";
-
-        // Aktualizacja paska po udanym teście!
-        wykonane_testy++;
-        pokazPostep(config.wyswietlaj_pasek, wykonane_testy, calkowita_liczba_testow, "Testy");
+        pokazPostep(config.wyswietlaj_pasek, i + 1, config.powtorzenia, "Badanie");
     }
 
-    // =========================================================================
-    // SCENARIUSZ 2: Wpływ UB i LB (1 próba)
-    // =========================================================================
-    stoper.start(); 
-    
-    vector<int> trasa_naiwna(N);
-    iota(trasa_naiwna.begin(), trasa_naiwna.end(), 0);
+    // Wyliczanie uśrednionych statystyk
+    double sredni_czas = suma_czasow_ms / config.powtorzenia;
+    double sredni_koszt = (double)suma_kosztow / config.powtorzenia;
+    double sredni_blad = (optimum > 0) ? ((sredni_koszt - optimum) / optimum) * 100.0 : 0.0;
 
-    vector<int> wynik_bez_ub_lb = szukaj_tabu(
-        graf, config.ts_max_iteracji, config.ts_kadencja, 
-        trasa_naiwna, -1, 
-        config.ts_aspiracja_plus, config.ts_zmienna_kadencja
-    );
-    
-    stoper.stop();
-    
-    double czas_bez_ms = stoper.pobierzCzasMs();
-    int koszt_bez = policz_koszt(wynik_bez_ub_lb, graf);
-    double blad_bez = (optimum > 0) ? ((double)(koszt_bez - optimum) / optimum) * 100.0 : 0.0;
+    if (config.wyswietlaj_pasek) cout << "\n";
 
-    plik_csv << sciezka << ";" << N << ";" << optimum << ";" << koszt_bez << ";" 
-             << blad_bez << ";" << czas_bez_ms << ";" << config.ts_max_iteracji << ";" 
-             << config.ts_kadencja << ";0;0;" << config.ts_aspiracja_plus << ";" << config.ts_zmienna_kadencja << "\n";
+    cout << "Zakonczono! Najlepszy koszt ze wszystkich prob: " << najlepszy_znaleziony_koszt << "\n";
+    cout << "Sredni czas: " << sredni_czas << " ms | Sredni blad: " << sredni_blad << " %\n";
 
-    // Aktualizacja paska po ostatnim teście (100%)
-    wykonane_testy++;
-    pokazPostep(config.wyswietlaj_pasek, wykonane_testy, calkowita_liczba_testow, "Testy");
+    // Zapis jednym wierszem do pliku CSV
+    plik_csv << sciezka << ";" << N << ";" << optimum << ";" << config.powtorzenia << ";" 
+             << sredni_koszt << ";" << sredni_blad << ";" << sredni_czas << ";" 
+             << config.ts_max_iteracji << ";" << config.ts_kadencja << ";" 
+             << config.ts_uzyj_ub << ";" << config.ts_uzyj_lb << ";" 
+             << config.ts_aspiracja_plus << ";" << config.ts_zmienna_kadencja << "\n";
 
     plik_csv.close();
-    cout << "Testy zakonczone. Wyniki dopisane do: " << config.plik_wynikowy << endl;
 }
