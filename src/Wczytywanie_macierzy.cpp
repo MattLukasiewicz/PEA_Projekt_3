@@ -1,4 +1,4 @@
-#include "Wczytywanie_macierzy.h"
+#include "Wczytywanie_Macierzy.h"
 #include <fstream>
 #include <iostream>
 
