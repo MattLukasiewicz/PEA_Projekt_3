@@ -10,9 +10,8 @@ int main() {
         return 1;
     }
 
-    cout << "=== PEA Projekt 3: Tabu Search ===" << endl;
+    cout << "PEA Projekt 3: Tabu Search" << endl;
     
-    // Uruchomienie pełnego pakietu badań z zapisem do CSV
     przeprowadz_testy(config.sciezka_do_pliku, config);
 
     return 0;

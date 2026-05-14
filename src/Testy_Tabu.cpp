@@ -12,7 +12,6 @@
 
 using namespace std;
 
-// Funkcja pomocnicza do liczenia kosztu
 int policz_koszt(const vector<int>& trasa, const vector<vector<int>>& graf) {
     int suma = 0;
     int n = trasa.size();
@@ -33,7 +32,6 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
         cout << "Uwaga: Brak optimum w pliku (sum_min=...) dla: " << sciezka << endl;
     }
 
-    // Przygotowanie pliku CSV
     ofstream plik_csv(config.plik_wynikowy, ios::app); 
     plik_csv.seekp(0, ios::end);
     if (plik_csv.tellp() == 0) {
@@ -54,13 +52,12 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
             ofstream plik_konw(config.plik_konwergencji, ios::app);
             plik_konw.seekp(0, ios::end);
             if (plik_konw.tellp() == 0) {
-                plik_konw << "Plik;Iteracja;Chwilowy_Koszt\n"; // <--- Tylko iteracja i koszt
+                plik_konw << "Plik;Iteracja;Chwilowy_Koszt\n";
             }
             plik_konw.close();
         }
         stoper.start(); 
         
-        // Dynamiczne wyliczanie wewnątrz stopera dla rzetelności
         int dolne_ograniczenie = -1;
         if (config.ts_uzyj_lb) {
             dolne_ograniczenie = oblicz_LB_MST(graf);
@@ -87,7 +84,7 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
             graf, config.ts_max_iteracji, config.ts_kadencja, 
             trasa_startowa, dolne_ograniczenie, 
             config.ts_aspiracja_plus, config.ts_zmienna_kadencja,
-            sciezka, plik_konw_do_przekazania // <--- TE DWA ARGUMENTY DODAJEMY
+            sciezka, plik_konw_do_przekazania
         );
         
         stoper.stop();
@@ -102,7 +99,6 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
         pokazPostep(config.wyswietlaj_pasek, i + 1, config.powtorzenia, "Badanie");
     }
 
-    // Wyliczanie uśrednionych statystyk
     double sredni_czas = suma_czasow_ms / config.powtorzenia;
     double sredni_koszt = (double)suma_kosztow / config.powtorzenia;
     double sredni_blad = (optimum > 0) ? ((sredni_koszt - optimum) / optimum) * 100.0 : 0.0;
@@ -112,7 +108,6 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
     cout << "Zakonczono! Najlepszy koszt ze wszystkich prob: " << najlepszy_znaleziony_koszt << "\n";
     cout << "Sredni czas: " << sredni_czas << " ms | Sredni blad: " << sredni_blad << " %\n";
 
-    // Zapis jednym wierszem do pliku CSV
     plik_csv << sciezka << ";" << N << ";" << optimum << ";" << config.powtorzenia << ";" 
              << sredni_koszt << ";" << sredni_blad << ";" << sredni_czas << ";" 
              << config.ts_max_iteracji << ";" << config.ts_kadencja << ";" 

@@ -1,12 +1,11 @@
 #include "Algorytm_TabuSearch.h"
 #include <iostream>
-#include <fstream>    // <--- NOWE
+#include <fstream>
 #include <algorithm>
 #include <limits>
 
 using namespace std;
 
-// Struktura na dane o najlepszym ruchu
 struct wynik_ruchu {
     vector<int> trasa;
     int koszt;
@@ -15,7 +14,6 @@ struct wynik_ruchu {
     bool udalo_sie;
 };
 
-// Funkcja do szybkiego policzenia sumy odległości
 int licz_koszt(const vector<int>& trasa, const vector<vector<int>>& graf) {
     int suma = 0;
     int n = trasa.size();
@@ -26,7 +24,6 @@ int licz_koszt(const vector<int>& trasa, const vector<vector<int>>& graf) {
     return suma;
 }
 
-// Funkcja oceniająca sąsiedztwo
 wynik_ruchu sprawdz_sasiadow(
     const vector<int>& baza,
     const vector<vector<int>>& graf,
@@ -63,7 +60,6 @@ wynik_ruchu sprawdz_sasiadow(
                     najlepszy.udalo_sie = true;
                 }
             }
-            // Aspiracja plus (jeśli włączona w configu)
             else if (uzyj_aspiracji_plus && (nowy_koszt < koszt_bazy)) {
                 if (nowy_koszt < najlepszy.koszt) {
                     najlepszy.koszt = nowy_koszt;
@@ -78,7 +74,6 @@ wynik_ruchu sprawdz_sasiadow(
     return najlepszy;
 }
 
-// Główna funkcja Tabu
 vector<int> szukaj_tabu(
     const vector<vector<int>>& graf, 
     int limit_iteracji, 
@@ -92,7 +87,6 @@ vector<int> szukaj_tabu(
 {
     int n = graf.size();
 
-    // 1. Używamy trasy z algorytmu NN zamiast naiwnej listy 0,1,2...
     vector<int> obecna_trasa = poczatkowa_trasa;
     int obecny_koszt = licz_koszt(obecna_trasa, graf);
     
@@ -111,9 +105,8 @@ vector<int> szukaj_tabu(
     }
     while (iteracja < limit_iteracji) {
         
-        // 2. PRZEDWCZESNY STOP: Sprawdzenie Lower Bound!
         if (top_koszt == dolne_ograniczenie) {
-            cout << " -> Tabu Search zeszlo do udowodnionego minimum (LB)! Koniec szukania w iteracji " << iteracja << ".\n";
+            cout << "Tabu Search zeszlo do udowodnionego minimum (LB)! Koniec szukania w iteracji " << iteracja << ".\n";
             break;
         }
 
@@ -121,7 +114,7 @@ vector<int> szukaj_tabu(
             obecna_trasa, graf, macierz_tabu, iteracja, top_koszt, obecny_koszt, uzyj_aspiracji_plus
         );
 
-        if (!wybrany.udalo_sie) break; // Zabezpieczenie przed totalnym zakleszczeniem
+        if (!wybrany.udalo_sie) break;
 
         obecna_trasa = wybrany.trasa;
         obecny_koszt = wybrany.koszt;
@@ -130,7 +123,6 @@ vector<int> szukaj_tabu(
             top_koszt = wybrany.koszt;
             top_trasa = obecna_trasa;
             
-            // ZAPIS 2: Zapisujemy iterację, w której pobito rekord i jego wartość!
             if (!plik_konwergencji.empty()) {
                 ofstream plik(plik_konwergencji, ios::app);
                 plik << nazwa_instancji << ";" << iteracja << ";" << top_koszt << "\n";
@@ -138,13 +130,13 @@ vector<int> szukaj_tabu(
 
             brak_zmian = 0; 
             if (uzyj_dynamicznej_kadencji) {
-                kadencja = max(2, kadencja - 1); // Zmniejszamy restrykcje, gdy idzie dobrze
+                kadencja = max(2, kadencja - 1);
             }
         } 
         else {
             brak_zmian++;
             if (uzyj_dynamicznej_kadencji && brak_zmian > 50) { 
-                kadencja += 2;   // Ucieczka z lokalnego minimum
+                kadencja += 2;
                 brak_zmian = 0;
             }
         }

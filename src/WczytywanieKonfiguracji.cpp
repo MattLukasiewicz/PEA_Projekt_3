@@ -5,7 +5,6 @@
 
 using namespace std;
 
-// Konstruktor - samo zerowanie zmiennych
 WczytywanieKonfiguracji::WczytywanieKonfiguracji() {
     wyswietlaj_pasek = false;
     plik_wynikowy = "";
