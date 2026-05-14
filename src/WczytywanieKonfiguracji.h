@@ -10,6 +10,7 @@ public:
     // Zmienne ogolne
     bool wyswietlaj_pasek;
     string plik_wynikowy;
+    string plik_konwergencji;
     int powtorzenia;
 
     // Zmienne Tabu Search

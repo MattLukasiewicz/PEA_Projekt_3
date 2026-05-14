@@ -50,7 +50,14 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
     pokazPostep(config.wyswietlaj_pasek, 0, config.powtorzenia, "Badanie");
 
     for (int i = 0; i < config.powtorzenia; i++) {
-        
+        if (i == 0 && !config.plik_konwergencji.empty()) {
+            ofstream plik_konw(config.plik_konwergencji, ios::app);
+            plik_konw.seekp(0, ios::end);
+            if (plik_konw.tellp() == 0) {
+                plik_konw << "Plik;Iteracja;Chwilowy_Koszt\n"; // <--- Tylko iteracja i koszt
+            }
+            plik_konw.close();
+        }
         stoper.start(); 
         
         // Dynamiczne wyliczanie wewnątrz stopera dla rzetelności
@@ -75,11 +82,12 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
             trasa_startowa.resize(N);
             iota(trasa_startowa.begin(), trasa_startowa.end(), 0);
         }
-
+        string plik_konw_do_przekazania = (i == 0) ? config.plik_konwergencji : "";
         vector<int> wynik_trasa = szukaj_tabu(
             graf, config.ts_max_iteracji, config.ts_kadencja, 
             trasa_startowa, dolne_ograniczenie, 
-            config.ts_aspiracja_plus, config.ts_zmienna_kadencja
+            config.ts_aspiracja_plus, config.ts_zmienna_kadencja,
+            sciezka, plik_konw_do_przekazania // <--- TE DWA ARGUMENTY DODAJEMY
         );
         
         stoper.stop();

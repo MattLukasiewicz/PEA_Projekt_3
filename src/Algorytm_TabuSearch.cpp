@@ -1,5 +1,6 @@
 #include "Algorytm_TabuSearch.h"
 #include <iostream>
+#include <fstream>    // <--- NOWE
 #include <algorithm>
 #include <limits>
 
@@ -85,7 +86,9 @@ vector<int> szukaj_tabu(
     const vector<int>& poczatkowa_trasa,
     int dolne_ograniczenie,
     bool uzyj_aspiracji_plus,
-    bool uzyj_dynamicznej_kadencji) 
+    bool uzyj_dynamicznej_kadencji,
+    const string& nazwa_instancji,
+    const string& plik_konwergencji) 
 {
     int n = graf.size();
 
@@ -102,6 +105,10 @@ vector<int> szukaj_tabu(
     int brak_zmian = 0;
     int iteracja = 0;
     
+    if (!plik_konwergencji.empty()) {
+        ofstream plik(plik_konwergencji, ios::app);
+        plik << nazwa_instancji << ";" << 0 << ";" << top_koszt << "\n";
+    }
     while (iteracja < limit_iteracji) {
         
         // 2. PRZEDWCZESNY STOP: Sprawdzenie Lower Bound!
@@ -123,6 +130,12 @@ vector<int> szukaj_tabu(
             top_koszt = wybrany.koszt;
             top_trasa = obecna_trasa;
             
+            // ZAPIS 2: Zapisujemy iterację, w której pobito rekord i jego wartość!
+            if (!plik_konwergencji.empty()) {
+                ofstream plik(plik_konwergencji, ios::app);
+                plik << nazwa_instancji << ";" << iteracja << ";" << top_koszt << "\n";
+            }
+
             brak_zmian = 0; 
             if (uzyj_dynamicznej_kadencji) {
                 kadencja = max(2, kadencja - 1); // Zmniejszamy restrykcje, gdy idzie dobrze

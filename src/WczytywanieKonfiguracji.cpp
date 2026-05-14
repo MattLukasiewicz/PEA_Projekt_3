@@ -46,6 +46,8 @@ bool WczytywanieKonfiguracji::wczytaj_z_pliku(const string& nazwa_pliku) {
             plik >> wyswietlaj_pasek;
         } else if (klucz == "PLIK_WYNIKOWY") {
             plik >> plik_wynikowy;
+        }else if (klucz == "PLIK_KONWERGENCJI") {
+            plik >> plik_konwergencji;
         } else if (klucz == "POWTORZENIA") {
             plik >> powtorzenia;
         } else if (klucz == "TS_MAX_ITERACJI") {
