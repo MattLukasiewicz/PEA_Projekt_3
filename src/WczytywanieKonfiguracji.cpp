@@ -12,6 +12,7 @@ WczytywanieKonfiguracji::WczytywanieKonfiguracji() {
     
     ts_max_iteracji = 0;
     ts_kadencja = 0;
+    ts_aspiracja_klasyczna = true;
     ts_aspiracja_plus = false;
     ts_zmienna_kadencja = false;
     ts_uzyj_ub = false;
@@ -53,6 +54,8 @@ bool WczytywanieKonfiguracji::wczytaj_z_pliku(const string& nazwa_pliku) {
             plik >> ts_max_iteracji;
         } else if (klucz == "TS_KADENCJA") {
             plik >> ts_kadencja;
+        } else if (klucz == "TS_ASPIRACJA_KLASYCZNA") {
+            plik >> ts_aspiracja_klasyczna;
         } else if (klucz == "TS_ASPIRACJA_PLUS") {
             plik >> ts_aspiracja_plus;
         } else if (klucz == "TS_ZMIENNA_KADENCJA") {

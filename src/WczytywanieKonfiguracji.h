@@ -14,6 +14,7 @@ public:
 
     int ts_max_iteracji;
     int ts_kadencja;
+    bool ts_aspiracja_klasyczna;
     bool ts_aspiracja_plus;
     bool ts_zmienna_kadencja;
     bool ts_uzyj_ub;

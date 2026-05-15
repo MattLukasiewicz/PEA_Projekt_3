@@ -35,7 +35,7 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
     ofstream plik_csv(config.plik_wynikowy, ios::app); 
     plik_csv.seekp(0, ios::end);
     if (plik_csv.tellp() == 0) {
-        plik_csv << "Plik;N;Optimum;Powtorzenia;Sredni_Koszt;Sredni_Blad_Proc;Sredni_Czas_ms;Iteracje;Kadencja;UB_On;LB_On;AspPlus_On;ZmKadencja_On\n";
+        plik_csv << "Plik;N;Optimum;Powtorzenia;Sredni_Koszt;Sredni_Blad_Proc;Sredni_Czas_ms;Iteracje;Kadencja;UB_On;LB_On;AspKlasyczna_On;AspPlus_On;ZmKadencja_On\n";
     }
 
     Stoper stoper;
@@ -83,7 +83,7 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
         vector<int> wynik_trasa = szukaj_tabu(
             graf, config.ts_max_iteracji, config.ts_kadencja, 
             trasa_startowa, dolne_ograniczenie, 
-            config.ts_aspiracja_plus, config.ts_zmienna_kadencja,
+            config.ts_aspiracja_klasyczna, config.ts_aspiracja_plus, config.ts_zmienna_kadencja,
             sciezka, plik_konw_do_przekazania
         );
         
@@ -112,7 +112,7 @@ void przeprowadz_testy(const string& sciezka, const WczytywanieKonfiguracji& con
              << sredni_koszt << ";" << sredni_blad << ";" << sredni_czas << ";" 
              << config.ts_max_iteracji << ";" << config.ts_kadencja << ";" 
              << config.ts_uzyj_ub << ";" << config.ts_uzyj_lb << ";" 
-             << config.ts_aspiracja_plus << ";" << config.ts_zmienna_kadencja << "\n";
+             << config.ts_aspiracja_klasyczna << ";" << config.ts_aspiracja_plus << ";" << config.ts_zmienna_kadencja << "\n";
 
     plik_csv.close();
 }

@@ -3,8 +3,14 @@
 #include <fstream>
 #include <algorithm>
 #include <limits>
+#include <vector>
 
 using namespace std;
+
+struct Zakaz {
+    int miasto_a;
+    int miasto_b;
+};
 
 struct wynik_ruchu {
     vector<int> trasa;
@@ -27,10 +33,10 @@ int licz_koszt(const vector<int>& trasa, const vector<vector<int>>& graf) {
 wynik_ruchu sprawdz_sasiadow(
     const vector<int>& baza,
     const vector<vector<int>>& graf,
-    const vector<vector<int>>& zakazy,
-    int nr_iteracji,
+    const vector<Zakaz>& lista_tabu,
     int top_koszt,
     int koszt_bazy,
+    bool uzyj_klasycznej_aspiracji,
     bool uzyj_aspiracji_plus) 
 {
     int n = baza.size();
@@ -48,8 +54,15 @@ wynik_ruchu sprawdz_sasiadow(
             int m1 = min(baza[i], baza[j]);
             int m2 = max(baza[i], baza[j]);
 
-            bool ruch_zakazany = (zakazy[m1][m2] > nr_iteracji);
-            bool klasyczna_aspiracja = (nowy_koszt < top_koszt);
+            bool ruch_zakazany = false;
+            for (size_t k = 0; k < lista_tabu.size(); ++k) {
+                if (lista_tabu[k].miasto_a == m1 && lista_tabu[k].miasto_b == m2) {
+                    ruch_zakazany = true;
+                    break;
+                }
+            }
+
+            bool klasyczna_aspiracja = uzyj_klasycznej_aspiracji && (nowy_koszt < top_koszt);
 
             if (!ruch_zakazany || klasyczna_aspiracja) {
                 if (nowy_koszt < najlepszy.koszt) {
@@ -77,25 +90,24 @@ wynik_ruchu sprawdz_sasiadow(
 vector<int> szukaj_tabu(
     const vector<vector<int>>& graf, 
     int limit_iteracji, 
-    int startowa_kadencja,
+    int startowa_dlugosc_listy,
     const vector<int>& poczatkowa_trasa,
     int dolne_ograniczenie,
+    bool uzyj_klasycznej_aspiracji,
     bool uzyj_aspiracji_plus,
     bool uzyj_dynamicznej_kadencji,
     const string& nazwa_instancji,
     const string& plik_konwergencji) 
 {
-    int n = graf.size();
-
     vector<int> obecna_trasa = poczatkowa_trasa;
     int obecny_koszt = licz_koszt(obecna_trasa, graf);
     
     vector<int> top_trasa = obecna_trasa;
     int top_koszt = obecny_koszt;
 
-    vector<vector<int>> macierz_tabu(n, vector<int>(n, -1));
+    vector<Zakaz> lista_tabu;
+    int dlugosc_listy = startowa_dlugosc_listy;
 
-    int kadencja = startowa_kadencja;
     int brak_zmian = 0;
     int iteracja = 0;
     
@@ -103,6 +115,7 @@ vector<int> szukaj_tabu(
         ofstream plik(plik_konwergencji, ios::app);
         plik << nazwa_instancji << ";" << 0 << ";" << top_koszt << "\n";
     }
+    
     while (iteracja < limit_iteracji) {
         
         if (top_koszt == dolne_ograniczenie) {
@@ -111,7 +124,13 @@ vector<int> szukaj_tabu(
         }
 
         wynik_ruchu wybrany = sprawdz_sasiadow(
-            obecna_trasa, graf, macierz_tabu, iteracja, top_koszt, obecny_koszt, uzyj_aspiracji_plus
+            obecna_trasa,
+            graf,
+            lista_tabu,
+            top_koszt,
+            obecny_koszt,
+            uzyj_klasycznej_aspiracji,
+            uzyj_aspiracji_plus
         );
 
         if (!wybrany.udalo_sie) break;
@@ -130,19 +149,25 @@ vector<int> szukaj_tabu(
 
             brak_zmian = 0; 
             if (uzyj_dynamicznej_kadencji) {
-                kadencja = max(2, kadencja - 1);
+                dlugosc_listy = max(2, dlugosc_listy - 1);
             }
         } 
         else {
             brak_zmian++;
             if (uzyj_dynamicznej_kadencji && brak_zmian > 50) { 
-                kadencja += 2;
+                dlugosc_listy += 2;
                 brak_zmian = 0;
             }
         }
 
-        macierz_tabu[wybrany.miasto_a][wybrany.miasto_b] = iteracja + kadencja;
-        macierz_tabu[wybrany.miasto_b][wybrany.miasto_a] = iteracja + kadencja;
+        Zakaz nowy_zakaz;
+        nowy_zakaz.miasto_a = wybrany.miasto_a;
+        nowy_zakaz.miasto_b = wybrany.miasto_b;
+        lista_tabu.push_back(nowy_zakaz);
+
+        while (lista_tabu.size() > static_cast<size_t>(dlugosc_listy)) {
+            lista_tabu.erase(lista_tabu.begin());
+        }
 
         iteracja++;
     }

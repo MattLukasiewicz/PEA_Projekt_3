@@ -10,6 +10,7 @@ std::vector<int> szukaj_tabu(
     int startowa_kadencja,
     const std::vector<int>& poczatkowa_trasa,
     int dolne_ograniczenie,
+    bool uzyj_klasycznej_aspiracji,
     bool uzyj_aspiracji_plus,
     bool uzyj_dynamicznej_kadencji,
     const std::string& nazwa_instancji = "",
